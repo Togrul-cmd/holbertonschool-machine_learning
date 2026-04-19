@@ -1,65 +1,40 @@
 #!/usr/bin/env python3
-"""
-ResNet-50 implementation
-"""
 
-from tensorflow import keras as K
-identity_block = __import__('2-identity_block').identity_block
-projection_block = __import__('3-projection_block').projection_block
+"""Identity block module for ResNet"""
+
+import tensorflow.keras as K
 
 
-def resnet50():
+def identity_block(A_prev, filters):
     """
-    Builds ResNet-50 architecture
+    Create the identity block form the ResNet Model
+    :param A_prev: The previous layer output
+    :param filters: An array of the conv-filter-size
+    :return: The identity module
     """
+    init = K.initializers.he_normal()
+    f11, f3, f12 = filters
 
-    he_init = K.initializers.he_normal(seed=0)
+    conv_f11 = K.layers.Conv2D(filters=f11,
+                               kernel_size=(1, 1),
+                               padding="same",
+                               kernel_initializer=init)(A_prev)
+    norm_1 = K.layers.BatchNormalization(axis=3)(conv_f11)
+    act_1 = K.layers.ReLU()(norm_1)
 
-    X = K.Input(shape=(224, 224, 3))
+    conv_f3 = K.layers.Conv2D(filters=f3,
+                              kernel_size=(3, 3),
+                              padding="same",
+                              kernel_initializer=init)(act_1)
+    norm_2 = K.layers.BatchNormalization(axis=3)(conv_f3)
+    act_2 = K.layers.ReLU()(norm_2)
 
-    x = K.layers.Conv2D(
-        64, (7, 7), strides=(2, 2),
-        padding='same',
-        kernel_initializer=he_init
-    )(X)
+    conv_f12 = K.layers.Conv2D(filters=f12,
+                               kernel_size=(1, 1),
+                               padding="same",
+                               kernel_initializer=init)(act_2)
+    norm_3 = K.layers.BatchNormalization(axis=3)(conv_f12)
 
-    x = K.layers.BatchNormalization(axis=3)(x)
-    x = K.layers.Activation('relu')(x)
-    x = K.layers.MaxPooling2D(
-        pool_size=(3, 3),
-        strides=(2, 2),
-        padding='same'
-    )(x)
+    add = K.layers.Add()([norm_3, A_prev])
 
-    x = projection_block(x, [64, 64, 256], s=1)
-    x = identity_block(x, [64, 64, 256])
-    x = identity_block(x, [64, 64, 256])
-
-    x = projection_block(x, [128, 128, 512], s=2)
-    x = identity_block(x, [128, 128, 512])
-    x = identity_block(x, [128, 128, 512])
-    x = identity_block(x, [128, 128, 512])
-
-    x = projection_block(x, [256, 256, 1024], s=2)
-    x = identity_block(x, [256, 256, 1024])
-    x = identity_block(x, [256, 256, 1024])
-    x = identity_block(x, [256, 256, 1024])
-    x = identity_block(x, [256, 256, 1024])
-    x = identity_block(x, [256, 256, 1024])
-
-    x = projection_block(x, [512, 512, 2048], s=2)
-    x = identity_block(x, [512, 512, 2048])
-    x = identity_block(x, [512, 512, 2048])
-
-    x = K.layers.AveragePooling2D(
-        pool_size=(7, 7),
-        padding='same'
-    )(x)
-
-    x = K.layers.Dense(
-        1000,
-        activation='softmax',
-        kernel_initializer=he_init
-    )(x)
-
-    return K.Model(inputs=X, outputs=x)
+    return K.layers.ReLU()(add)
