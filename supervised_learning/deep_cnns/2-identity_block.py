@@ -12,7 +12,7 @@ def identity_block(A_prev, filters):
     :param filters: An array of the conv-filter-size
     :return: The identity module
     """
-    init = K.initializers.he_normal()
+    init = K.initializers.he_normal(seed=0)
     f11, f3, f12 = filters
 
     conv_f11 = K.layers.Conv2D(filters=f11,
