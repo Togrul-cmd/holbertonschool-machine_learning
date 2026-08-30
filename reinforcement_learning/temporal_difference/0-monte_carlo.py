@@ -5,8 +5,8 @@ Monte Carlo policy evaluation
 import numpy as np
 
 
-def monte_carlo(env, V, policy, episodes=5000, max_steps=100,
-                alpha=0.1, gamma=0.99):
+def monte_carlo(env, V, policy, episodes=5000,
+                max_steps=100, alpha=0.1, gamma=0.99):
     """
     Performs the Monte Carlo algorithm for policy evaluation.
 
@@ -48,4 +48,4 @@ def monte_carlo(env, V, policy, episodes=5000, max_steps=100,
             # Every-visit update: V(s) = V(s) + alpha * [G - V(s)]
             V[state_t] = V[state_t] + alpha * (G - V[state_t])
 
-    return V
+        return V
