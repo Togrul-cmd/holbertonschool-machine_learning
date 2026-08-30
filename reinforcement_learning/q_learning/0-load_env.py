@@ -17,13 +17,13 @@ def load_frozen_lake(desc=None, map_name=None, is_slippery=False):
     Returns:
         The gymnasium environment.
     """
-    # By passing desc and map_name directly, Gymnasium will automatically
-    # generate a random 8x8 map if both are None.
+    # Updated to include render_mode="ansi" as per part 4 instructions
     env = gym.make(
         "FrozenLake-v1",
         desc=desc,
         map_name=map_name,
-        is_slippery=is_slippery
+        is_slippery=is_slippery,
+        render_mode="ansi"
     )
 
     return env
