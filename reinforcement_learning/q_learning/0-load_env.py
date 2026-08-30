@@ -17,12 +17,8 @@ def load_frozen_lake(desc=None, map_name=None, is_slippery=False):
     Returns:
         The gymnasium environment.
     """
-    # If both desc and map_name are None, generate a random 8x8 map
-    # using the function built into the gym namespace
-    if desc is None and map_name is None:
-        desc = gym.envs.toy_text.frozen_lake.generate_random_map(size=8)
-
-    # Initialize and return the environment
+    # By passing desc and map_name directly, Gymnasium will automatically 
+    # generate a random 8x8 map if both are None.
     env = gym.make(
         "FrozenLake-v1",
         desc=desc,
