@@ -3,7 +3,6 @@
 Module containing the load_frozen_lake function.
 """
 import gymnasium as gym
-from gymnasium.envs.toy_text.frozen_lake import generate_random_map
 
 
 def load_frozen_lake(desc=None, map_name=None, is_slippery=False):
@@ -19,8 +18,10 @@ def load_frozen_lake(desc=None, map_name=None, is_slippery=False):
         The gymnasium environment.
     """
     # If both desc and map_name are None, generate a random 8x8 map
+    # using the function built into the gym namespace
     if desc is None and map_name is None:
-        desc = generate_random_map(size=8)
+        desc = gym.envs.toy_text.frozen_lake.generate_random_map(size=8)
+
     # Initialize and return the environment
     env = gym.make(
         "FrozenLake-v1",
