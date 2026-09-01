@@ -30,24 +30,30 @@ def monte_carlo(env, V, policy, episodes=5000, max_steps=100,
         episode = []
         for step in range(max_steps):
             action = policy(state)
-            step_res = env.step(action)
-            next_state = step_res[0]
-            reward = step_res[1]
-            done = step_res[2]
-            if len(step_res) > 4:
-                done = done or step_res[3]
+            res = env.step(action)
+            next_state = res[0]
+            reward = res[1]
+            done = res[2]
+
+            # Compatibility for different Gym/Gymnasium versions
+            if len(res) > 4:
+                done = done or res[3]
 
             episode.append((state, reward))
             if done:
                 break
             state = next_state
 
-        G = 0
         states = [x[0] for x in episode]
-        for t, (state, reward) in enumerate(reversed(episode)):
-            G = gamma * G + reward
-            idx = len(episode) - 1 - t
-            if state not in states[:idx]:
-                V[state] = V[state] + alpha * (G - V[state])
+        G = 0
+
+        # Traverse backwards to calculate Returns (G)
+        for t in range(len(episode) - 1, -1, -1):
+            s_t, r_t = episode[t]
+            G = gamma * G + r_t
+
+            # First-visit check: only update if state is not visited earlier
+            if s_t not in states[:t]:
+                V[s_t] = V[s_t] + alpha * (G - V[s_t])
 
     return V
