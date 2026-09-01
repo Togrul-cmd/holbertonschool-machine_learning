@@ -44,16 +44,12 @@ def monte_carlo(env, V, policy, episodes=5000, max_steps=100,
                 break
             state = next_state
 
-        states = [x[0] for x in episode]
         G = 0
-
-        # Traverse backwards to calculate Returns (G)
+        # Every-Visit Monte Carlo prediction calculation
         for t in range(len(episode) - 1, -1, -1):
             s_t, r_t = episode[t]
             G = gamma * G + r_t
-
-            # First-visit check: only update if state is not visited earlier
-            if s_t not in states[:t]:
-                V[s_t] = V[s_t] + alpha * (G - V[s_t])
+            # Update applied on every visit (First-Visit restriction removed)
+            V[s_t] = V[s_t] + alpha * (G - V[s_t])
 
     return V
