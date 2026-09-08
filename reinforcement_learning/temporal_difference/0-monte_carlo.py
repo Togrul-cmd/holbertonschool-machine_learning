@@ -48,11 +48,8 @@ def monte_carlo(env, V, policy, episodes=5000, max_steps=100,
         #    (one update per distinct state -> first-visit MC)
         # ------------------------------------------------------------
         G = 0.0
-        visited = set()
         for state, reward in reversed(episode):
-            G = reward + gamma * G         # G_t = r_{t+1} + gamma * G_{t+1}
-            if state not in visited:
-                visited.add(state)
-                V[state] += alpha * (G - V[state])
+            G = reward + gamma * G
+            V[state] += alpha * (G - V[state])
 
     return V
