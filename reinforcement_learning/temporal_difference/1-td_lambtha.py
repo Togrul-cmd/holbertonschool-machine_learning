@@ -1,44 +1,41 @@
 #!/usr/bin/env python3
-"""Defines the TD(lambda) algorithm for value estimation"""
+"""Module that implements the TD(λ) algorithm for value estimation."""
 import numpy as np
 
 
-def td_lambtha(env, V, policy, lambtha, episodes=5000,
-               max_steps=100, alpha=0.1, gamma=0.99):
-    """
-    Performs the TD(lambda) algorithm
+def td_lambtha(env, V, policy, lambtha, episodes=5000, max_steps=100,
+               alpha=0.1, gamma=0.99):
+    """Perform the TD(λ) algorithm to estimate a value function.
 
     Args:
         env: the environment instance
-        V: numpy.ndarray of shape (s,) containing the value estimate
-        policy: function that takes in a state and returns the next
-            action to take
-        lambtha: the eligibility trace factor
-        episodes: total number of episodes to train over
-        max_steps: maximum number of steps per episode
-        alpha: the learning rate
-        gamma: the discount rate
+        V (numpy.ndarray): shape (s,), the value estimate
+        policy: function that takes a state and returns the next action
+        lambtha (float): the eligibility trace factor
+        episodes (int): total number of episodes to train over
+        max_steps (int): maximum number of steps per episode
+        alpha (float): the learning rate
+        gamma (float): the discount rate
 
     Returns:
-        V, the updated value estimate
+        numpy.ndarray: the updated value estimate V
     """
     for ep in range(episodes):
         state, _ = env.reset()
-        eligibility = np.zeros_like(V)
+        eligibility = np.zeros(V.shape[0])
 
         for step in range(max_steps):
             action = policy(state)
-            next_state, reward, terminated, truncated, _ = env.step(
-                action)
+            next_state, reward, done, truncated, _ = env.step(action)
 
-            delta = reward + gamma * V[next_state] - V[state]
+            td_error = reward + gamma * V[next_state] - V[state]
             eligibility[state] += 1
 
-            V = V + alpha * delta * eligibility
-            eligibility = gamma * lambtha * eligibility
+            V += alpha * td_error * eligibility
+            eligibility *= gamma * lambtha
 
-            state = next_state
-            if terminated or truncated:
+            if done or truncated:
                 break
+            state = next_state
 
     return V

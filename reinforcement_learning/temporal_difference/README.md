@@ -1,1 +1,1 @@
-Temporal Difference
+bos deyil
