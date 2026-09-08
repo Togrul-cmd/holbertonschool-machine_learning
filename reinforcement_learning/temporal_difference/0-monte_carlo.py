@@ -1,62 +1,51 @@
 #!/usr/bin/env python3
-"""
-Monte Carlo module
-"""
+'''Monte Carlo'''
+
 import numpy as np
+import gym
 
 
-def monte_carlo(env, V, policy, episodes=5000, max_steps=100,
-                alpha=0.1, gamma=0.99):
-    """
-    Performs the Monte Carlo algorithm for policy evaluation.
+def generate_episode(env, policy, max_steps):
+    '''Generate episode
+    '''
+    episode = [[], []]
+    state = env.reset()
+    for t in range(max_steps):
+        action = policy(state)
+        new_state, reward, done, info = env.step(action)
+        episode[0].append(state)
+        if env.desc.reshape(env.observation_space.n)[new_state] == b'H':
+            episode[1].append(-1)
+            return episode
+        if env.desc.reshape(env.observation_space.n)[new_state] == b'G':
+            episode[1].append(1)
+            return episode
+        episode[1].append(reward)
+        state = new_state
+    return episode
 
+
+def monte_carlo(env, V, policy, episodes=5000, max_steps=100, alpha=0.1,
+                gamma=0.99):
+    '''performs the Monte Carlo algorithm
     Args:
-        env: environment instance
-        V: numpy.ndarray of shape (s,) containing the value estimate
-        policy: function that takes in a state and returns next action
-        episodes: total number of episodes to train over
-        max_steps: maximum number of steps per episode
-        alpha: learning rate
-        gamma: discount rate
-
-    Returns:
-        V: the updated value estimate
-    """
-    V = np.asarray(V, dtype=np.float64)
-
-    for _ in range(episodes):
-        state = env.reset()
-        if isinstance(state, tuple):
-            state = state[0]
-
-        episode = []
-        for _ in range(max_steps):
-            action = policy(state)
-            res = env.step(action)
-
-            next_state = res[0]
-            reward = res[1]
-            done = res[2]
-
-            # Support for newer gymnasium environments (5-tuple return)
-            if len(res) > 4:
-                done = done or res[3]
-
-            episode.append((state, reward))
-            if done:
-                break
-            state = next_state
-
-        states = [step[0] for step in episode]
-        G = 0.0
-
-        # Traverse backwards to calculate Returns (G)
-        for i in range(len(episode) - 1, -1, -1):
-            s, r = episode[i]
-            G = gamma * G + r
-
-            # First-visit check: only update if state is not visited earlier
-            if s not in states[:i]:
-                V[s] = V[s] + alpha * (G - V[s])
-
+        env: is the openAI environment instance
+        V: is a numpy.ndarray of shape (s,) containing the value estimate
+        policy: is a function that takes in a state and returns the next
+                action to take
+        episodes: is the total number of episodes to train over
+        max_steps: is the maximum number of steps per episode
+        alpha: is the learning rate
+        gamma: is the discount rate
+    Returns: V, the updated value estimate
+    '''
+    discounts = [gamma ** i for i in range(max_steps)]
+    for ep in range(episodes):
+        episode = generate_episode(env, policy, max_steps)
+        for i in range(len(episode[0])):
+            Gt = sum(np.array(episode[1][i:]) *
+                     np.array(discounts[:len(episode[1][i:])]))
+            # V(St) = V(St) + alplha * (Gt - V(St))
+            V[episode[0][i]] = V[episode[0][i]] +\
+                alpha * (Gt - V[episode[0][i]])
     return V
